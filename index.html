@@ -3,89 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NutriTrack Pro</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍎</text></svg>">
+    <title>NutriTrack Pro India</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🇮🇳</text></svg>">
     <style>
         :root {
-            --primary: #2563eb;
-            --success: #22c55e;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --neutral: #64748b;
-            --bg: #f1f5f9;
+            --primary: #2563eb; --success: #138808; --warning: #f59e0b; 
+            --danger: #ef4444; --neutral: #64748b; --bg: #f1f5f9;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 120px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 150px; color: #1e293b; }
+
+        /* Card Layouts */
+        .card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 20px; }
+        .card-title { margin-top: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 15px; }
+
+        /* BMI Calculator Section */
+        .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 12px; font-weight: bold; color: var(--neutral); margin-bottom: 4px; }
+        .input-group input, .input-group select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; }
+        .result-box { background: #f8fafc; padding: 15px; border-radius: 8px; text-align: center; border: 1px dashed #cbd5e1; }
+        .result-box h3 { margin: 0; color: var(--primary); font-size: 24px; }
 
         /* Search Section */
-        .search-container { background: white; padding: 15px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 20px; }
         .search-group { display: flex; gap: 8px; position: relative; }
-        input[type="text"] { flex: 1; padding: 14px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; transition: border 0.2s; }
-        input:focus { border-color: var(--primary); outline: none; }
-        
+        .search-group input { flex: 1; padding: 14px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; transition: border 0.2s; }
+        .search-group input:focus { border-color: var(--primary); outline: none; }
         .btn-search { background: var(--primary); color: white; border: none; padding: 0 20px; border-radius: 12px; font-weight: bold; cursor: pointer; }
-        .btn-search:active { transform: scale(0.95); opacity: 0.9; }
+        
+        .results-list { margin-top: 10px; max-height: 250px; overflow-y: auto; border: 1px solid #eee; border-radius: 12px; display: none; }
+        .result-item { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #f1f5f9; gap: 12px; cursor: pointer; }
+        .result-item:hover { background: #f8fafc; }
+        .result-item img { width: 45px; height: 45px; object-fit: cover; border-radius: 8px; background: #eee; }
 
-        /* Dropdown Suggestions */
-        .suggestions { position: absolute; top: 100%; left: 0; right: 0; background: white; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); z-index: 100; display: none; margin-top: 5px; max-height: 250px; overflow-y: auto; }
-        .suggestion-item { padding: 12px 15px; border-bottom: 1px solid #f1f5f9; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .suggestion-item:last-child { border: none; }
-        .suggestion-item:active { background: #f8fafc; }
+        /* Preview Card & Nutrition Label */
+        .preview-header { display: flex; gap: 15px; align-items: flex-start; margin-bottom: 15px; }
+        .preview-header img { width: 80px; height: 80px; object-fit: contain; border: 1px solid #eee; border-radius: 8px; }
+        .portion-control { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #f8fafc; border-radius: 10px; margin-bottom: 15px; font-weight: bold; }
+        .portion-control input { width: 80px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; text-align: center; font-size: 16px; font-weight: bold; }
 
-        /* Preview Card */
-        .card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 20px; display: none; animation: slideUp 0.3s ease-out; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-        .portion-control { display: flex; align-items: center; gap: 10px; margin: 15px 0; padding: 10px; background: #f8fafc; border-radius: 10px; }
-        .portion-control input { width: 80px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; text-align: center; font-size: 16px; }
-
-        /* Nutrition Label */
-        .nutrition-label { border: 2px solid #000; padding: 10px; font-family: 'Arial Narrow', sans-serif; margin: 15px 0; }
+        .nutrition-label { border: 2px solid #000; padding: 12px; font-family: 'Arial Narrow', sans-serif; background: white; margin-bottom: 15px; }
         .label-title { font-size: 28px; font-weight: 900; border-bottom: 8px solid #000; margin-bottom: 4px; }
-        .label-row { display: flex; justify-content: space-between; border-bottom: 1px solid #000; padding: 4px 0; font-size: 14px; }
+        .label-row { display: flex; justify-content: space-between; border-bottom: 1px solid #000; padding: 4px 0; font-size: 15px; }
         .label-row.bold { border-bottom: 4px solid #000; font-size: 18px; font-weight: bold; }
         .indent { padding-left: 15px; }
 
-        /* Grade Badge */
-        .grade-badge { display: inline-block; padding: 4px 12px; border-radius: 6px; color: white; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; }
+        /* Badges & Buttons */
+        .grade-badge { display: inline-block; padding: 4px 12px; border-radius: 6px; color: white; font-weight: 800; text-transform: uppercase; margin-top: 5px; font-size: 14px; }
         .g-a { background: #008248; } .g-b { background: #85bb2f; } .g-c { background: #fecb02; color: #000; } 
-        .g-d { background: #ee8100; } .g-e { background: #e63e11; }
+        .g-d { background: #ee8100; } .g-e { background: #e63e11; } .g-unknown { background: #94a3b8; }
 
-        /* Block Action Button */
-        .btn-block { width: 100%; padding: 16px; border-radius: 12px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
+        .btn-block { width: 100%; padding: 14px; border-radius: 10px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-apply { background: var(--neutral); color: white; margin-top: 10px; }
         .btn-add { background: var(--success); color: white; }
-        .btn-add:active { transform: scale(0.98); }
 
-        /* Fixed Bottom Dashboard (The Ruler) */
-        .dashboard { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px 20px; border-top: 1px solid #e2e8f0; box-shadow: 0 -4px 6px -1px rgb(0 0 0 / 0.1); z-index: 200; }
-        .ruler-container { margin-top: 10px; }
-        .ruler-label { display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; margin-bottom: 4px; color: var(--neutral); }
-        .ruler-bar { height: 10px; background: #e2e8f0; border-radius: 5px; overflow: hidden; }
-        .ruler-fill { height: 100%; width: 0%; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); background: var(--primary); }
-
-        /* Guide Section */
-        .guide { font-size: 13px; color: var(--neutral); line-height: 1.5; margin-top: 20px; background: #fff; padding: 15px; border-radius: 12px; }
+        /* Dashboard Ruler */
+        .dashboard { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px 20px; border-top: 1px solid #e2e8f0; box-shadow: 0 -4px 15px rgba(0,0,0,0.1); z-index: 1000; }
+        .ruler-label { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; margin-bottom: 8px; }
+        .ruler-bar { height: 12px; background: #e2e8f0; border-radius: 6px; overflow: hidden; }
+        .ruler-fill { height: 100%; width: 0%; transition: width 0.5s ease; background: linear-gradient(90deg, #2563eb, #138808); }
+        .macros { display: flex; justify-content: space-between; margin-top: 8px; font-size: 13px; color: var(--neutral); font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="search-container">
-        <div class="search-group">
-            <input type="text" id="foodSearch" placeholder="Search (e.g. Chowmein, Paneer, Oats)" autocomplete="off">
-            <button class="btn-search" onclick="triggerSearch()">Search</button>
-            <div id="suggestions" class="suggestions"></div>
+    <div class="card">
+        <h2 class="card-title">⚙️ Smart Calorie Target (TDEE)</h2>
+        <div class="calc-grid">
+            <div class="input-group">
+                <label>Weight (kg)</label>
+                <input type="number" id="calcWeight" value="75" oninput="calculateTDEE()">
+            </div>
+            <div class="input-group">
+                <label>Height (cm)</label>
+                <input type="number" id="calcHeight" value="180" oninput="calculateTDEE()">
+            </div>
+            <div class="input-group">
+                <label>Age</label>
+                <input type="number" id="calcAge" value="24" oninput="calculateTDEE()">
+            </div>
+            <div class="input-group">
+                <label>Activity Level</label>
+                <select id="calcActivity" onchange="calculateTDEE()">
+                    <option value="1.2">Sedentary (Desk Job)</option>
+                    <option value="1.375">Light Exercise (1-3 days)</option>
+                    <option value="1.55" selected>Moderate (3-5 days)</option>
+                    <option value="1.725">Heavy (6-7 days)</option>
+                </select>
+            </div>
         </div>
+        <div class="result-box">
+            <div style="font-size: 12px; color: #64748b; margin-bottom: 5px;">Your Recommended Daily Intake</div>
+            <h3 id="tdeeResult">2600 kcal</h3>
+        </div>
+        <button class="btn-block btn-apply" onclick="applyGoalToDashboard()">Set as Dashboard Goal</button>
     </div>
 
-    <div id="previewCard" class="card">
-        <div id="gradeArea"></div>
-        <h2 id="pName" style="margin: 5px 0;">Product Name</h2>
+    <div class="card">
+        <h2 class="card-title">🔍 Food Search</h2>
+        <div class="search-group">
+            <input type="text" id="foodSearch" placeholder="Search brands (Amul, Britannia...)" autocomplete="off">
+            <button class="btn-search" onclick="triggerSearch()">Search</button>
+        </div>
+        <div id="resultsList" class="results-list"></div>
+    </div>
+
+    <div id="previewCard" class="card" style="display: none;">
+        <div class="preview-header">
+            <img id="prevImg" src="">
+            <div>
+                <h3 id="pName" style="margin: 0 0 5px 0;">Product Name</h3>
+                <div id="gradeArea"></div>
+            </div>
+        </div>
         
         <div class="portion-control">
             <span>Your Portion:</span>
-            <input type="number" id="portionInput" value="100" oninput="updateLivePreview()">
-            <span>grams</span>
+            <div>
+                <input type="number" id="portionInput" value="100" oninput="updateLivePreview()">
+                <span> grams</span>
+            </div>
         </div>
 
         <div class="nutrition-label">
@@ -99,89 +136,147 @@
             <div class="label-row bold"><span>Protein</span> <span id="lProt">0g</span></div>
         </div>
 
-        <button class="btn-block btn-add" onclick="logConsumption()">
-            <span>➕</span> Add to My Daily Intake
-        </button>
-    </div>
-
-    <div class="guide">
-        <strong>Health Guide:</strong><br>
-        ✅ <b>Grade A/B:</b> Healthy choice. Daily staples.<br>
-        ⚠️ <b>Grade C:</b> Moderate. Watch the portion size.<br>
-        🚫 <b>Grade D/E:</b> Occasional. High in salt, sugar, or sat-fats. <br>
-        <em>Tip: Fitness-focused users should limit Grade E foods to stay away from empty calories and high sodium.</em>
+        <button class="btn-block btn-add" onclick="logConsumption()">➕ Add to Today's Intake</button>
     </div>
 
     <div class="dashboard">
-        <div class="ruler-container">
-            <div class="ruler-label">
-                <span>Daily Calories Progress</span>
-                <span id="rulerText">0 / 2000 kcal</span>
-            </div>
-            <div class="ruler-bar">
-                <div id="rulerFill" class="ruler-fill"></div>
-            </div>
+        <div class="ruler-label">
+            <span>Today's Progress</span>
+            <span><span id="currentCals">0</span> / <span id="goalText">2000</span> kcal</span>
         </div>
-        <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: var(--neutral);">
-            <span>P: <b id="totP">0</b>g</span>
-            <span>C: <b id="totC">0</b>g</span>
-            <span>F: <b id="totF">0</b>g</span>
+        <div class="ruler-bar">
+            <div id="rulerFill" class="ruler-fill"></div>
+        </div>
+        <div class="macros">
+            <span>🥩 Pro: <span id="totP">0</span>g</span>
+            <span>🍞 Carb: <span id="totC">0</span>g</span>
+            <span>🧈 Fat: <span id="totF">0</span>g</span>
         </div>
     </div>
 
     <script>
+        // State Management
         let currentItem = null;
-        let totals = { cal: 0, p: 0, c: 0, f: 0 };
-        const DAILY_GOAL = 2000;
+        let dailyLog = JSON.parse(localStorage.getItem('nutri_log_v2')) || [];
+        let calorieGoal = localStorage.getItem('nutri_goal_v2') || 2000;
 
-        // Smart Search with Auto-Detection
+        window.onload = () => {
+            calculateTDEE();
+            document.getElementById('goalText').innerText = calorieGoal;
+            refreshDashboard();
+
+            // Wire up "Press Enter" for search
+            document.getElementById('foodSearch').addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    triggerSearch();
+                }
+            });
+        };
+
+        // --- 1. BMI / TDEE Logic ---
+        function calculateTDEE() {
+            const w = parseFloat(document.getElementById('calcWeight').value) || 0;
+            const h = parseFloat(document.getElementById('calcHeight').value) || 0;
+            const a = parseFloat(document.getElementById('calcAge').value) || 0;
+            const act = parseFloat(document.getElementById('calcActivity').value) || 1.2;
+
+            // Mifflin-St Jeor Equation (Male default logic for standard fitness tracking)
+            const bmr = (10 * w) + (6.25 * h) - (5 * a) + 5;
+            const tdee = Math.round(bmr * act);
+            
+            document.getElementById('tdeeResult').innerText = tdee > 0 ? `${tdee} kcal` : "--- kcal";
+            return tdee;
+        }
+
+        function applyGoalToDashboard() {
+            const newGoal = calculateTDEE();
+            if(newGoal > 0) {
+                calorieGoal = newGoal;
+                localStorage.setItem('nutri_goal_v2', calorieGoal);
+                document.getElementById('goalText').innerText = calorieGoal;
+                refreshDashboard();
+                
+                const btn = document.querySelector('.btn-apply');
+                btn.innerText = "✅ Goal Applied!";
+                btn.style.background = "var(--success)";
+                setTimeout(() => {
+                    btn.innerText = "Set as Dashboard Goal";
+                    btn.style.background = "var(--neutral)";
+                }, 2000);
+            }
+        }
+
+        // --- 2. Search Logic (India Focused) ---
         async function triggerSearch() {
             const query = document.getElementById('foodSearch').value;
+            const list = document.getElementById('resultsList');
+            
             if (query.length < 2) return;
-
-            const suggBox = document.getElementById('suggestions');
-            suggBox.innerHTML = '<div class="suggestion-item">Searching nearest matches...</div>';
-            suggBox.style.display = 'block';
+            
+            list.innerHTML = '<div style="padding:15px; text-align:center;"><i>Searching India database...</i></div>';
+            list.style.display = 'block';
 
             try {
-                // search_simple=1 handles typos and fuzzy matching
-                const res = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${query}&search_simple=1&action=process&json=1&page_size=6`);
+                const res = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${query}&search_simple=1&action=process&json=1&page_size=8&tagtype_0=countries&tag_0=india`);
                 const data = await res.json();
                 
-                suggBox.innerHTML = '';
+                list.innerHTML = '';
                 if (data.products.length === 0) {
-                    suggBox.innerHTML = '<div class="suggestion-item">No food found. Try a simpler name.</div>';
+                    list.innerHTML = '<div style="padding:15px;">No products found.</div>';
                     return;
                 }
 
                 data.products.forEach(p => {
-                    const div = document.createElement('div');
-                    div.className = 'suggestion-item';
-                    div.innerHTML = `<span>${p.product_name || 'Generic Item'}</span> <small>${p.brands || ''}</small>`;
-                    div.onclick = () => selectItem(p);
-                    suggBox.appendChild(div);
+                    const item = document.createElement('div');
+                    item.className = 'result-item';
+                    const img = p.image_front_small_url || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="45" height="45"><rect width="45" height="45" fill="#eee"/></svg>';
+                    item.innerHTML = `
+                        <img src="${img}" alt="product"> 
+                        <div>
+                            <b>${p.product_name || 'Generic Item'}</b><br>
+                            <small style="color: #64748b;">${p.brands || 'Local / Generic'}</small>
+                        </div>
+                    `;
+                    item.onclick = () => selectItem(p);
+                    list.appendChild(item);
                 });
             } catch (e) {
-                suggBox.innerHTML = '<div class="suggestion-item">Connection error</div>';
+                list.innerHTML = '<div style="padding:15px; color: red;">Network Error.</div>';
             }
         }
 
         function selectItem(product) {
             currentItem = product;
-            document.getElementById('suggestions').style.display = 'none';
+            document.getElementById('resultsList').style.display = 'none';
             document.getElementById('previewCard').style.display = 'block';
-            document.getElementById('foodSearch').value = product.product_name;
+            
+            // Auto-detect serving size or default to 100g
+            let defaultPortion = 100;
+            if (product.serving_quantity) {
+                defaultPortion = parseFloat(product.serving_quantity);
+            }
+            document.getElementById('portionInput').value = defaultPortion;
+            
             updateLivePreview();
+            // Scroll to preview
+            document.getElementById('previewCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
+        // --- 3. Live Preview & Nutrition Label ---
         function updateLivePreview() {
             if (!currentItem) return;
             const portion = parseFloat(document.getElementById('portionInput').value) || 0;
             const factor = portion / 100;
-
             const nuts = currentItem.nutriments || {};
             
-            document.getElementById('pName').innerText = currentItem.product_name;
+            document.getElementById('prevImg').src = currentItem.image_front_small_url || '';
+            document.getElementById('pName').innerText = currentItem.product_name || 'Unknown Item';
+            
+            const grade = (currentItem.nutriscore_grade || 'unknown').toLowerCase();
+            document.getElementById('gradeArea').innerHTML = `<span class="grade-badge g-${grade}">Health Grade: ${grade.toUpperCase()}</span>`;
+
+            // Populate Label safely
             document.getElementById('lCals').innerText = Math.round((nuts['energy-kcal_100g'] || 0) * factor);
             document.getElementById('lFat').innerText = ((nuts['fat_100g'] || 0) * factor).toFixed(1) + 'g';
             document.getElementById('lSat').innerText = ((nuts['saturated-fat_100g'] || 0) * factor).toFixed(1) + 'g';
@@ -189,54 +284,59 @@
             document.getElementById('lCarb').innerText = ((nuts['carbohydrates_100g'] || 0) * factor).toFixed(1) + 'g';
             document.getElementById('lSug').innerText = ((nuts['sugars_100g'] || 0) * factor).toFixed(1) + 'g';
             document.getElementById('lProt').innerText = ((nuts['proteins_100g'] || 0) * factor).toFixed(1) + 'g';
-
-            const grade = (currentItem.nutriscore_grade || 'unknown').toLowerCase();
-            document.getElementById('gradeArea').innerHTML = `<span class="grade-badge g-${grade}">Grade ${grade}</span>`;
         }
 
+        // --- 4. Logging & Dashboard Ruler ---
         function logConsumption() {
             const portion = parseFloat(document.getElementById('portionInput').value) || 0;
             const factor = portion / 100;
             const nuts = currentItem.nutriments || {};
 
-            totals.cal += (nuts['energy-kcal_100g'] || 0) * factor;
-            totals.p += (nuts['proteins_100g'] || 0) * factor;
-            totals.c += (nuts['carbohydrates_100g'] || 0) * factor;
-            totals.f += (nuts['fat_100g'] || 0) * factor;
+            const entry = {
+                cal: (nuts['energy-kcal_100g'] || 0) * factor,
+                p: (nuts['proteins_100g'] || 0) * factor,
+                c: (nuts['carbohydrates_100g'] || 0) * factor,
+                f: (nuts['fat_100g'] || 0) * factor
+            };
 
-            updateDashboard();
+            dailyLog.push(entry);
+            localStorage.setItem('nutri_log_v2', JSON.stringify(dailyLog));
+            refreshDashboard();
             
-            // Visual Feedback
             const btn = document.querySelector('.btn-add');
-            btn.style.background = "#15803d";
-            btn.innerHTML = "✅ Logged Successfully";
+            btn.innerHTML = "✅ Added to Dashboard!";
             setTimeout(() => {
-                btn.style.background = "var(--success)";
-                btn.innerHTML = "➕ Add to My Daily Intake";
+                btn.innerHTML = "➕ Add to Today's Intake";
                 document.getElementById('previewCard').style.display = 'none';
                 document.getElementById('foodSearch').value = '';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }, 1000);
         }
 
-        function updateDashboard() {
-            const perc = Math.min((totals.cal / DAILY_GOAL) * 100, 100);
-            document.getElementById('rulerFill').style.width = perc + '%';
-            document.getElementById('rulerText').innerText = `${Math.round(totals.cal)} / ${DAILY_GOAL} kcal`;
+        function refreshDashboard() {
+            let totals = dailyLog.reduce((acc, curr) => {
+                acc.cal += curr.cal; acc.p += curr.p; acc.c += curr.c; acc.f += curr.f;
+                return acc;
+            }, {cal:0, p:0, c:0, f:0});
+
+            document.getElementById('currentCals').innerText = Math.round(totals.cal);
             
+            // Calculate ruler percentage
+            const perc = Math.min((totals.cal / calorieGoal) * 100, 100);
+            const rulerFill = document.getElementById('rulerFill');
+            rulerFill.style.width = perc + '%';
+            
+            // Color logic for the ruler
+            if (totals.cal > calorieGoal) {
+                rulerFill.style.background = "var(--danger)"; // Turn red if over limit
+            } else {
+                rulerFill.style.background = "linear-gradient(90deg, #2563eb, #138808)";
+            }
+
             document.getElementById('totP').innerText = totals.p.toFixed(1);
             document.getElementById('totC').innerText = totals.c.toFixed(1);
             document.getElementById('totF').innerText = totals.f.toFixed(1);
-
-            // Change ruler color if over-limit
-            if (totals.cal > DAILY_GOAL) document.getElementById('rulerFill').style.background = 'var(--danger)';
         }
-
-        // Close suggestions when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.search-group')) {
-                document.getElementById('suggestions').style.display = 'none';
-            }
-        });
     </script>
 </body>
 </html>
