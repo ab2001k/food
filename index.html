@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Nutrition Tracker</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥗</text></svg>">
+    
+    <style>
+        :root { --primary: #2c3e50; --secondary: #3498db; --bg: #f8f9fa; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; padding: 20px; max-width: 800px; margin: auto; background: var(--bg); color: var(--primary); }
+        
+        /* Layout */
+        .container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+        .panel { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+
+        /* Search & Dropdown */
+        .search-wrapper { position: relative; width: 100%; margin-bottom: 20px; }
+        input[type="text"] { width: 100%; padding: 12px; font-size: 16px; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; transition: 0.3s; }
+        input[type="text"]:focus { border-color: var(--secondary); outline: none; }
+        
+        .dropdown { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 0 0 8px 8px; max-height: 200px; overflow-y: auto; z-index: 1000; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .dropdown-item { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+        .dropdown-item:hover { background: #f1f8ff; }
+
+        /* Nutri-Score Animations */
+        .score-container { text-align: center; margin: 20px 0; }
+        .score-badge { display: inline-block; padding: 10px 25px; font-size: 24px; font-weight: 900; color: white; border-radius: 30px; text-transform: uppercase; opacity: 0; transform: scale(0.5); }
+        
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.5) translateY(20px); }
+            70% { opacity: 1; transform: scale(1.1) translateY(0); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .animate-score { animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+        .score-a { background: #038141; } 
+        .score-b { background: #85BB2F; } 
+        .score-c { background: #FECB02; color: #333; } 
+        .score-d { background: #EE8100; } 
+        .score-e { background: #E63E11; } 
+        .score-unknown { background: #95a5a6; }
+
+        /* Re-made Nutrition Label */
+        .nutrition-label { border: 2px solid black; padding: 10px; font-family: 'Arial', sans-serif; background: white; }
+        .nutrition-label h2 { margin: 0; border-bottom: 10px solid black; font-size: 32px; font-weight: 900; }
+        .nutrition-label .serving { font-size: 18px; border-bottom: 10px solid black; padding-bottom: 5px; margin-bottom: 5px; }
+        .nutrition-label .line { border-bottom: 1px solid black; padding: 3px 0; display: flex; justify-content: space-between; }
+        .nutrition-label .thick-line { border-bottom: 5px solid black; }
+        .nutrition-label .indent { margin-left: 20px; }
+        .nutrition-label b { font-weight: 900; }
+
+        /* Buttons & Daily Tracker */
+        button { background: var(--secondary); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 15px; transition: 0.2s; }
+        button:hover { background: #2980b9; }
+        
+        .tracker-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #ccc; }
+        .tracker-totals { font-weight: bold; margin-top: 15px; border-top: 2px solid var(--primary); padding-top: 10px; font-size: 1.1em; color: #27ae60; }
+    </style>
+</head>
+<body>
+
+    <h1 style="text-align: center;">🥗 Pro Nutrition & Macro Tracker</h1>
+
+    <div class="search-wrapper">
+        <input type="text" id="searchInput" placeholder="Search food (e.g., Chowmein, Chicken, Oats)..." oninput="debounceSearch(this.value)">
+        <div id="dropdown" class="dropdown"></div>
+    </div>
+
+    <div class="container">
+        <div class="panel" id="analysisPanel" style="display: none;">
+            <h3 id="foodTitle" style="margin-top: 0;"></h3>
+            
+            <div class="score-container">
+                <div id="nutriScore" class="score-badge"></div>
+            </div>
+
+            <div class="nutrition-label" id="nutriLabel">
+                <h2>Nutrition Facts</h2>
+                <div class="serving">Serving Size <span id="servingSizeText">100g</span></div>
+                <div class="line thick-line"><b>Amount Per Serving</b></div>
+                <div class="line"><b>Calories</b> <b id="lblCals">0</b></div>
+                <div class="line thick-line"></div>
+                <div class="line"><b>Total Fat</b> <span id="lblFat">0g</span></div>
+                <div class="line indent">Saturated Fat <span id="lblSatFat">0g</span></div>
+                <div class="line"><b>Sodium</b> <span id="lblSodium">0mg</span></div>
+                <div class="line"><b>Total Carbohydrate</b> <span id="lblCarbs">0g</span></div>
+                <div class="line indent">Dietary Fiber <span id="lblFiber">0g</span></div>
+                <div class="line indent">Total Sugars <span id="lblSugars">0g</span></div>
+                <div class="line thick-line"><b>Protein</b> <span id="lblProtein">0g</span></div>
+            </div>
+
+            <button onclick="addToDailyLog()">➕ Add to Daily Consumption</button>
+        </div>
+
+        <div class="panel">
+            <h3 style="margin-top: 0;">📊 Today's Consumption</h3>
+            <div id="trackerList">
+                <p style="color: #7f8c8d; font-size: 0.9em;">No foods added yet. Search and add items to track your daily intake.</p>
+            </div>
+            <div class="tracker-totals" id="trackerTotals" style="display: none;">
+                Total: 0 kcal | 0g P | 0g C | 0g F
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let timeout = null;
+        let currentFoodData = null; // Stores currently selected food
+        
+        // Daily Totals State
+        let dailyTotals = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+
+        // 1. Fast Debounced Search
+        function debounceSearch(query) {
+            clearTimeout(timeout);
+            const dropdown = document.getElementById('dropdown');
+            
+            if (query.length < 2) {
+                dropdown.style.display = 'none';
+                return;
+            }
+
+            timeout = setTimeout(async () => {
+                try {
+                    const res = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${query}&search_simple=1&action=process&json=1&page_size=8`);
+                    const data = await res.json();
+                    showDropdown(data.products);
+                } catch (e) {
+                    console.error("Search failed", e);
+                }
+            }, 350); // 350ms delay makes the UI feel fast but prevents API spam
+        }
+
+        // 2. Populate Dropdown with Auto-detected Quantities
+        function showDropdown(products) {
+            const dropdown = document.getElementById('dropdown');
+            dropdown.innerHTML = '';
+            
+            if(products.length === 0) {
+                dropdown.style.display = 'none';
+                return;
+            }
+
+            products.forEach(product => {
+                // Auto-detect serving size or default to 100g
+                const serving = product.serving_quantity ? `${product.serving_quantity}g` : '100g';
+                const name = product.product_name || 'Unknown Item';
+                const brand = product.brands ? `(${product.brands.split(',')[0]})` : '';
+
+                const div = document.createElement('div');
+                div.className = 'dropdown-item';
+                div.innerHTML = `<span><b>${name}</b> <small>${brand}</small></span> <small>${serving}</small>`;
+                div.onclick = () => selectFood(product, serving);
+                dropdown.appendChild(div);
+            });
+            
+            dropdown.style.display = 'block';
+        }
+
+        // 3. Process Selection & Build Re-made Label
+        function selectFood(product, servingStr) {
+            document.getElementById('searchInput').value = product.product_name || '';
+            document.getElementById('dropdown').style.display = 'none';
+            document.getElementById('analysisPanel').style.display = 'block';
+
+            // Extract numeric serving size (fallback to 100)
+            const servingQty = parseFloat(servingStr) || 100;
+            const multiplier = servingQty / 100;
+
+            document.getElementById('foodTitle').innerText = `${product.product_name} - ${servingQty}g Portion`;
+            document.getElementById('servingSizeText').innerText = `${servingQty}g`;
+
+            // Nutri-Score Logic & Animation
+            const grade = (product.nutriscore_grade || 'unknown').toLowerCase();
+            const scoreEl = document.getElementById('nutriScore');
+            
+            // Remove animation class, trigger reflow, add back to replay animation
+            scoreEl.classList.remove('animate-score');
+            void scoreEl.offsetWidth; 
+            
+            scoreEl.className = `score-badge score-${grade} animate-score`;
+            scoreEl.innerText = `Grade ${grade !== 'unknown' ? grade : 'N/A'}`;
+
+            // Safe extraction of macros (scaled by portion size)
+            const getNutrient = (key) => {
+                let val = product.nutriments ? product.nutriments[key] : 0;
+                return val ? (val * multiplier) : 0;
+            };
+
+            // Populate the Custom Built Label exactly
+            currentFoodData = {
+                name: product.product_name,
+                cals: Math.round(getNutrient('energy-kcal_100g')),
+                fat: getNutrient('fat_100g').toFixed(1),
+                satFat: getNutrient('saturated-fat_100g').toFixed(1),
+                sodium: Math.round(getNutrient('sodium_100g') * 1000), // convert g to mg
+                carbs: getNutrient('carbohydrates_100g').toFixed(1),
+                fiber: getNutrient('fiber_100g').toFixed(1),
+                sugars: getNutrient('sugars_100g').toFixed(1),
+                protein: getNutrient('proteins_100g').toFixed(1)
+            };
+
+            document.getElementById('lblCals').innerText = currentFoodData.cals;
+            document.getElementById('lblFat').innerText = currentFoodData.fat + 'g';
+            document.getElementById('lblSatFat').innerText = currentFoodData.satFat + 'g';
+            document.getElementById('lblSodium').innerText = currentFoodData.sodium + 'mg';
+            document.getElementById('lblCarbs').innerText = currentFoodData.carbs + 'g';
+            document.getElementById('lblFiber').innerText = currentFoodData.fiber + 'g';
+            document.getElementById('lblSugars').innerText = currentFoodData.sugars + 'g';
+            document.getElementById('lblProtein').innerText = currentFoodData.protein + 'g';
+        }
+
+        // 4. Daily Consumption Tracker
+        function addToDailyLog() {
+            if (!currentFoodData) return;
+
+            const list = document.getElementById('trackerList');
+            const totalsDiv = document.getElementById('trackerTotals');
+
+            // Clear empty state message
+            if (dailyTotals.calories === 0) list.innerHTML = '';
+
+            // Add item to UI
+            const item = document.createElement('div');
+            item.className = 'tracker-item';
+            item.innerHTML = `
+                <span>${currentFoodData.name}</span>
+                <span><b>${currentFoodData.cals}</b> kcal</span>
+            `;
+            list.appendChild(item);
+
+            // Update Totals
+            dailyTotals.calories += currentFoodData.cals;
+            dailyTotals.protein += parseFloat(currentFoodData.protein);
+            dailyTotals.carbs += parseFloat(currentFoodData.carbs);
+            dailyTotals.fat += parseFloat(currentFoodData.fat);
+
+            totalsDiv.style.display = 'block';
+            totalsDiv.innerHTML = `Total: ${Math.round(dailyTotals.calories)} kcal | ${Math.round(dailyTotals.protein)}g P | ${Math.round(dailyTotals.carbs)}g C | ${Math.round(dailyTotals.fat)}g F`;
+            
+            // Visual feedback
+            const btn = event.target;
+            btn.innerText = "✅ Added!";
+            btn.style.background = "#27ae60";
+            setTimeout(() => {
+                btn.innerText = "➕ Add to Daily Consumption";
+                btn.style.background = "var(--secondary)";
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
